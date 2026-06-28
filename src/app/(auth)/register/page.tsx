@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/card";
 
 export default function RegisterPage() {
-  const { status } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -31,6 +31,11 @@ export default function RegisterPage() {
 
   if (status === "unauthenticated") {
     router.push("/login");
+    return null;
+  }
+
+  if (status === "authenticated" && session?.user?.organizationId) {
+    router.push("/dashboard");
     return null;
   }
 
@@ -57,6 +62,7 @@ export default function RegisterPage() {
       });
 
       if (res.ok) {
+        await update();
         router.push("/dashboard");
       } else if (res.status === 400) {
         setError("This organization name is taken, please try another");

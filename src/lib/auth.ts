@@ -26,11 +26,11 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async jwt({ token, user }: any) {
-      if (user) {
-        // First login — fetch user's org and role from DB
+    async jwt({ token, user, trigger, session }: any) {
+      // On sign in (user exists) or session update
+      if (user || trigger === "update") {
         const dbUser = await prisma.user.findUnique({
-          where: { email: user.email },
+          where: { email: token.email },
           select: {
             id: true,
             role: true,

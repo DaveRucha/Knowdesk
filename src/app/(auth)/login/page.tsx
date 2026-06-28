@@ -1,12 +1,31 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { useEffect } from "react";
+import { useSession, signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Chrome } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function LoginPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      if (session?.user.organizationId) {
+        router.push("/dashboard");
+      } else {
+        router.push("/register");
+      }
+    }
+  }, [status, session, router]);
+
+  if (status === "loading") {
+    return null;
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="w-full max-w-sm">
