@@ -62,6 +62,9 @@ declare module "next-auth" {
       image?: string | null;
       picture?: string | null;
       sub?: string | null;
+      userId?: string;
+      role?: Role;
+      organizationId?: string | null;
     };
   }
 
