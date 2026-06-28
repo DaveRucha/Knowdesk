@@ -1,29 +1,57 @@
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import Link from "next/link";
-import { Plus } from "lucide-react";
+"use client";
 
-import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { Plus, Trash2 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default async function SopsPage() {
-  const session = await getServerSession(authOptions);
+interface SopItem {
+  id: string;
+  title: string;
+  createdAt: string;
+}
 
-  if (!session) {
-    redirect("/login");
+export default function SopsPage() {
+  const [sops, setSops] = useState<SopItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const fetchSops = useCallback(async () => {
+    try {
+      const res = await fetch("/api/sops");
+      if (res.ok) {
+        const data = await res.json();
+        setSops(data);
+      } else {
+        setError("Failed to load SOPs.");
+      }
+    } catch {
+      setError("Failed to load SOPs.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSops();
+  }, [fetchSops]);
+
+  async function handleDelete(id: string) {
+    if (!window.confirm("Are you sure you want to delete this SOP?")) return;
+
+    try {
+      const res = await fetch(`/api/sops/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setSops((prev) => prev.filter((sop) => sop.id !== id));
+      } else {
+        setError("Failed to delete SOP.");
+      }
+    } catch {
+      setError("Failed to delete SOP.");
+    }
   }
-
-  if (!session.user.organizationId) {
-    redirect("/register");
-  }
-
-  const sops = await prisma.sOP.findMany({
-    where: { organizationId: session.user.organizationId },
-    orderBy: { createdAt: "desc" },
-    select: { id: true, title: true, createdAt: true },
-  });
 
   return (
     <div className="space-y-8">
@@ -42,7 +70,9 @@ export default async function SopsPage() {
         </Button>
       </div>
 
-      {sops.length === 0 ? (
+      {error && <p className="text-sm text-destructive">{error}</p>}
+
+      {!loading && sops.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
             No SOPs yet. Create your first SOP to get started.
@@ -63,9 +93,18 @@ export default async function SopsPage() {
                     day: "numeric",
                   })}
                 </p>
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/sops/${sop.id}`}>View</Link>
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/sops/${sop.id}`}>View</Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(sop.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}

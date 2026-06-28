@@ -6,6 +6,7 @@ import {
   FileText,
   BookOpen,
   MessageCircle,
+  AlertCircle,
   BarChart,
 } from "lucide-react";
 
@@ -15,6 +16,7 @@ import { SignOutButton } from "@/components/sign-out-button";
 const NAV_LINKS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/ask", label: "Ask", icon: MessageCircle },
+  { href: "/gaps", label: "Gaps", icon: AlertCircle },
   { href: "/documents", label: "Documents", icon: FileText },
   { href: "/sops", label: "SOPs", icon: BookOpen },
   { href: "/analytics", label: "Analytics", icon: BarChart },

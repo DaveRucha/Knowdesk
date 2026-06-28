@@ -1,9 +1,13 @@
 "use client";
 
 import { useState, FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function NewSopPage() {
-  const [topic, setTopic] = useState("");
+  const searchParams = useSearchParams();
+  const topicFromUrl = searchParams.get("topic") ?? "";
+
+  const [topic, setTopic] = useState(topicFromUrl);
   const [content, setContent] = useState("");
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
@@ -140,11 +144,28 @@ export default function NewSopPage() {
         <p className="text-sm text-destructive">{generateError}</p>
       )}
 
-      {content && (
+      {content && !generated && (
         <div className="rounded-md border border-border bg-card p-4">
           <pre className="whitespace-pre-wrap text-sm text-card-foreground">
             {content}
           </pre>
+        </div>
+      )}
+
+      {generated && (
+        <div className="space-y-1">
+          <label
+            htmlFor="sop-content"
+            className="text-sm font-medium text-foreground"
+          >
+            Review and edit before saving:
+          </label>
+          <textarea
+            id="sop-content"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            className="min-h-[500px] w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          />
         </div>
       )}
 

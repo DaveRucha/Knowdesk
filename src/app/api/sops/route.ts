@@ -65,3 +65,19 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ id: sop.id, title: sop.title }, { status: 201 });
 }
+
+export async function GET() {
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user?.organizationId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const sops = await prisma.sOP.findMany({
+    where: { organizationId: session.user.organizationId },
+    orderBy: { createdAt: "desc" },
+    select: { id: true, title: true, createdAt: true },
+  });
+
+  return NextResponse.json(sops, { status: 200 });
+}

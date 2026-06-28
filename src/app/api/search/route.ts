@@ -58,15 +58,17 @@ export async function POST(request: Request) {
   const wasAnswered = confidentChunks.length > 0;
   const confidence = Number(matches[0]?.similarity ?? 0);
 
-  await prisma.query.create({
-    data: {
-      question,
-      wasAnswered,
-      confidence,
-      user: { connect: { id: userId } },
-      organization: { connect: { id: organizationId } },
-    },
-  });
+  if (question.trim().length >= 15 && Number(confidence) >= 0.05) {
+    await prisma.query.create({
+      data: {
+        question,
+        wasAnswered,
+        confidence,
+        user: { connect: { id: userId } },
+        organization: { connect: { id: organizationId } },
+      },
+    });
+  }
 
   if (!wasAnswered) {
     return NextResponse.json(
