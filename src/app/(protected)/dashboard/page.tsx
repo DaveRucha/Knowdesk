@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -18,18 +19,32 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const [organization, documentCount, sopCount, queryCount] =
-    await Promise.all([
-      prisma.organization.findUnique({ where: { id: organizationId } }),
-      prisma.document.count({ where: { organizationId } }),
-      prisma.sOP.count({ where: { organizationId } }),
-      prisma.query.count({ where: { organizationId } }),
-    ]);
+  const [
+    organization,
+    documentCount,
+    sopCount,
+    queryCount,
+    answeredCount,
+    unansweredCount,
+  ] = await Promise.all([
+    prisma.organization.findUnique({ where: { id: organizationId } }),
+    prisma.document.count({ where: { organizationId } }),
+    prisma.sOP.count({ where: { organizationId } }),
+    prisma.query.count({ where: { organizationId } }),
+    prisma.query.count({ where: { organizationId, wasAnswered: true } }),
+    prisma.query.count({ where: { organizationId, wasAnswered: false } }),
+  ]);
+
+  const answerRate =
+    queryCount === 0
+      ? "N/A"
+      : `${Math.round((answeredCount / queryCount) * 100)}%`;
 
   const stats = [
     { label: "Total Documents", value: documentCount },
     { label: "Total SOPs", value: sopCount },
     { label: "Total Queries", value: queryCount },
+    { label: "Answer Rate", value: answerRate },
   ];
 
   return (
@@ -39,7 +54,7 @@ export default async function DashboardPage() {
         <p className="text-muted-foreground">{organization?.name}</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {stats.map(({ label, value }) => (
           <Card key={label}>
             <CardHeader className="pb-2">
@@ -48,6 +63,15 @@ export default async function DashboardPage() {
             </CardHeader>
           </Card>
         ))}
+
+        <Link href="/gaps">
+          <Card className="transition-colors hover:bg-accent">
+            <CardHeader className="pb-2">
+              <CardDescription>Knowledge Gaps</CardDescription>
+              <CardTitle className="text-3xl">{unansweredCount}</CardTitle>
+            </CardHeader>
+          </Card>
+        </Link>
       </div>
     </div>
   );
