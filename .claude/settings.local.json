@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "PowerShell(npx tsc --noEmit -p tsconfig.json 2>&1)",
+      "PowerShell(wsl.exe -e bash -lc \"cd ~/projects/Knowdesk && npx tsc --noEmit -p tsconfig.json 2>&1 | head -n 100\")"
+    ]
+  }
+}

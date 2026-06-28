@@ -1,4 +1,4 @@
-import NextAuth, { NextAuthOptions, SessionStrategy } from "next-auth";
+import { NextAuthOptions, SessionStrategy } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import prisma from "./prisma";
 import { PrismaAdapter } from "@auth/prisma-adapter";
@@ -15,7 +15,7 @@ export const authOptions: NextAuthOptions = {
   ],
 
   pages: {
-    signIn: "/sign-in",
+    signIn: "/login",
   },
 
   secret: process.env.NEXTAUTH_SECRET,
@@ -26,23 +26,39 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async jwt({ token }: any) {
-      // console.log("JWT callback jwt token = ", token);
+    async jwt({ token, user }: any) {
+      if (user) {
+        // First login — fetch user's org and role from DB
+        const dbUser = await prisma.user.findUnique({
+          where: { email: user.email },
+          select: {
+            id: true,
+            role: true,
+            organizationId: true,
+          },
+        });
 
-      return { ...token };
+        if (dbUser) {
+          token.userId = dbUser.id;
+          token.role = dbUser.role;
+          token.organizationId = dbUser.organizationId;
+        }
+      }
+      return token;
     },
 
     async session({ session, token }: any) {
-      session.user = token;
-      // console.log("Session = ", session, "session token = ", token);
+      if (token) {
+        session.user.userId = token.userId;
+        session.user.role = token.role;
+        session.user.organizationId = token.organizationId;
+      }
       return session;
     },
 
-    async redirect({ baseUrl }: any) {
-      // console.log("baseurl = ", baseUrl);
-      return baseUrl;
+    async redirect({ url, baseUrl }: any) {
+      if (url.startsWith(baseUrl)) return url;
+      return baseUrl + "/register";
     },
   },
 };
-
-export default NextAuth(authOptions);
