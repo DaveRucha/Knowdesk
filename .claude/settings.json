@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"src/app/\\(protected\\)/sops\")",
+      "Bash(mkdir -p \"src/app/\\(protected\\)/sops/[id]\")",
+      "Bash(pnpm add *)",
+      "Bash(wsl -d Ubuntu -- bash -lc 'ls -la $HOME/.nvm 2>&1 | head -20; echo \"---\"; ls $HOME/.nvm/versions/node 2>&1')"
+    ],
+    "additionalDirectories": [
+      "\\\\wsl.localhost\\Ubuntu\\home\\rucha\\projects\\Knowdesk\\src\\app\\(protected)",
+      "\\\\wsl.localhost\\Ubuntu\\home\\rucha\\projects\\Knowdesk\\src\\app\\(protected)\\sops"
+    ]
+  }
+}

@@ -6,10 +6,14 @@
       "PowerShell(wsl.exe -e bash -lc \"cd ~/projects/Knowdesk && npx tsc --noEmit -p tsconfig.json 2>&1 | head -n 100\")",
       "Bash(ls server *)",
       "Bash(find /home/rucha/projects/Knowdesk -maxdepth 1 -iname \"prisma\" 2>/dev/null; find / -maxdepth 1 2>/dev/null | head -1)",
-      "Read(///wsl.localhost/Ubuntu//**)"
+      "Read(///wsl.localhost/Ubuntu//**)",
+      "Bash(mkdir -p src/app/api/sops/generate)",
+      "Bash(mkdir -p \"src/app/\\(protected\\)/sops/new\")"
     ],
     "additionalDirectories": [
-      "\\\\wsl.localhost\\Ubuntu\\home\\rucha\\projects\\Knowdesk\\server"
+      "\\\\wsl.localhost\\Ubuntu\\home\\rucha\\projects\\Knowdesk\\server",
+      "\\\\wsl.localhost\\Ubuntu\\home\\rucha\\projects\\Knowdesk\\src\\app\\api\\sops",
+      "\\\\wsl.localhost\\Ubuntu\\home\\rucha\\projects\\Knowdesk\\src\\app\\(protected)\\sops"
     ]
   }
 }
