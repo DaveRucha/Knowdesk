@@ -14,9 +14,9 @@ import { SignOutButton } from "@/components/sign-out-button";
 
 const NAV_LINKS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/ask", label: "Ask", icon: MessageCircle },
   { href: "/documents", label: "Documents", icon: FileText },
   { href: "/sops", label: "SOPs", icon: BookOpen },
-  { href: "/ask", label: "Ask a Question", icon: MessageCircle },
   { href: "/analytics", label: "Analytics", icon: BarChart },
 ];
 
