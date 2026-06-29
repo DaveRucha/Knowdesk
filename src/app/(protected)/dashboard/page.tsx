@@ -1,7 +1,5 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import Link from "next/link";
-
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import {
@@ -25,7 +23,7 @@ export default async function DashboardPage() {
     sopCount,
     queryCount,
     answeredCount,
-    unansweredCount,
+    gapCount,
   ] = await Promise.all([
     prisma.organization.findUnique({ where: { id: organizationId } }),
     prisma.document.count({ where: { organizationId } }),
@@ -45,6 +43,7 @@ export default async function DashboardPage() {
     { label: "Total SOPs", value: sopCount },
     { label: "Total Queries", value: queryCount },
     { label: "Answer Rate", value: answerRate },
+    { label: "Knowledge Gaps", value: gapCount },
   ];
 
   return (
@@ -53,7 +52,6 @@ export default async function DashboardPage() {
         <h1 className="text-3xl font-bold">Welcome to Knowdesk</h1>
         <p className="text-muted-foreground">{organization?.name}</p>
       </div>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {stats.map(({ label, value }) => (
           <Card key={label}>
@@ -63,15 +61,6 @@ export default async function DashboardPage() {
             </CardHeader>
           </Card>
         ))}
-
-        <Link href="/gaps">
-          <Card className="transition-colors hover:bg-accent">
-            <CardHeader className="pb-2">
-              <CardDescription>Knowledge Gaps</CardDescription>
-              <CardTitle className="text-3xl">{unansweredCount}</CardTitle>
-            </CardHeader>
-          </Card>
-        </Link>
       </div>
     </div>
   );
