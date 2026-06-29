@@ -1,43 +1,16 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
-
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { BarChart2, MessageCircle, CheckCircle, FileText, BookOpen } from "lucide-react";
+import { AnalyticsCharts } from "@/components/analytics-charts";
 
 export default async function AnalyticsPage() {
   const session = await getServerSession(authOptions);
-
-  if (!session) {
-    redirect("/login");
-  }
-
-  if (!session.user.organizationId) {
-    redirect("/register");
-  }
-
-  if (session.user.role !== "ADMIN") {
-    return (
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold">Analytics</h1>
-        </div>
-        <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            You don&apos;t have permission to view this page.
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  if (!session) redirect("/login");
+  if (!session.user.organizationId) redirect("/register");
+  if (session.user.role !== "ADMIN") redirect("/dashboard");
 
   const { organizationId } = session.user;
 
@@ -48,6 +21,7 @@ export default async function AnalyticsPage() {
     sopCount,
     topQuestions,
     recentQueries,
+    dailyActivity,
   ] = await Promise.all([
     prisma.query.count({ where: { organizationId } }),
     prisma.query.count({ where: { organizationId, wasAnswered: true } }),
@@ -64,109 +38,153 @@ export default async function AnalyticsPage() {
     prisma.query.findMany({
       where: { organizationId },
       orderBy: { createdAt: "desc" },
-      take: 10,
-      select: {
-        question: true,
-        wasAnswered: true,
-        confidence: true,
-        createdAt: true,
-      },
+      take: 8,
+      select: { question: true, wasAnswered: true, confidence: true, createdAt: true },
     }),
+    prisma.$queryRaw<Array<{ date: string; count: bigint; answered: bigint }>>(Prisma.sql`
+      SELECT
+        DATE("createdAt") as date,
+        COUNT(*) as count,
+        COUNT(*) FILTER (WHERE "wasAnswered" = true) as answered
+      FROM "Query"
+      WHERE "organizationId" = ${organizationId}
+        AND "createdAt" >= NOW() - INTERVAL '7 days'
+      GROUP BY DATE("createdAt")
+      ORDER BY date ASC
+    `),
   ]);
 
-  const answerRate =
-    totalQueries === 0
-      ? 0
-      : Math.round((answeredQueries / totalQueries) * 100);
+  const answerRate = totalQueries === 0 ? 0 : Math.round((answeredQueries / totalQueries) * 100);
+  const gapCount = totalQueries - answeredQueries;
 
-  const stats = [
-    { label: "Total Questions Asked", value: totalQueries },
-    { label: "Answer Rate", value: `${answerRate}%` },
-    { label: "Documents Uploaded", value: documentCount },
-    { label: "SOPs Created", value: sopCount },
+  const dailyData = dailyActivity.map(d => ({
+    date: new Date(d.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }),
+    questions: Number(d.count),
+    answered: Number(d.answered),
+    gaps: Number(d.count) - Number(d.answered),
+  }));
+
+  const topQuestionsData = topQuestions.map(q => ({
+    question: q.question.length > 40 ? q.question.slice(0, 40) + "..." : q.question,
+    count: Number(q.count),
+  }));
+
+  const donutData = [
+    { name: "Answered", value: answeredQueries, color: "#6366f1" },
+    { name: "Unanswered", value: gapCount, color: "#fbbf24" },
   ];
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Analytics</h1>
-        <p className="text-muted-foreground">Knowledge base usage insights</p>
+    <div className="flex flex-col min-h-screen">
+
+      {/* Topbar */}
+      <div className="bg-white border-b border-slate-200 px-8 py-4">
+        <h1 className="text-lg font-semibold text-slate-900">Analytics</h1>
+        <p className="text-sm text-slate-500">Knowledge base usage insights</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map(({ label, value }) => (
-          <Card key={label}>
-            <CardHeader className="pb-2">
-              <CardDescription>{label}</CardDescription>
-              <CardTitle className="text-3xl">{value}</CardTitle>
-            </CardHeader>
-          </Card>
-        ))}
-      </div>
+      <div className="flex-1 p-8 space-y-6">
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Most Asked Questions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {topQuestions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No questions asked yet.
-            </p>
-          ) : (
-            <ul className="space-y-3">
-              {topQuestions.map((q) => (
-                <li
-                  key={q.question}
-                  className="flex items-center justify-between gap-4"
-                >
-                  <span className="text-sm">{q.question}</span>
-                  <Badge variant="secondary">{Number(q.count)}</Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+        {/* Stat cards */}
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className="bg-white rounded-xl border border-slate-200 p-5" style={{borderTop: "3px solid #6366f1"}}>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
+                <MessageCircle className="w-4 h-4 text-indigo-600" />
+              </div>
+              <div>
+                <div className="text-xs text-slate-500">Total questions</div>
+                <div className="text-2xl font-semibold text-slate-900">{totalQueries}</div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl border border-slate-200 p-5" style={{borderTop: "3px solid #10b981"}}>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                <CheckCircle className="w-4 h-4 text-emerald-600" />
+              </div>
+              <div>
+                <div className="text-xs text-slate-500">Answer rate</div>
+                <div className="text-2xl font-semibold text-slate-900">{answerRate}%</div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl border border-slate-200 p-5" style={{borderTop: "3px solid #7c3aed"}}>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
+                <FileText className="w-4 h-4 text-violet-600" />
+              </div>
+              <div>
+                <div className="text-xs text-slate-500">Documents</div>
+                <div className="text-2xl font-semibold text-slate-900">{documentCount}</div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl border border-slate-200 p-5" style={{borderTop: "3px solid #818cf8"}}>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
+                <BookOpen className="w-4 h-4 text-indigo-500" />
+              </div>
+              <div>
+                <div className="text-xs text-slate-500">SOPs created</div>
+                <div className="text-2xl font-semibold text-slate-900">{sopCount}</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Recent Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
+        {/* Charts */}
+        <AnalyticsCharts
+          dailyData={dailyData}
+          topQuestionsData={topQuestionsData}
+          donutData={donutData}
+        />
+
+        {/* Recent activity */}
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100">
+            <div className="text-sm font-semibold text-slate-900">Recent Activity</div>
+          </div>
           {recentQueries.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No recent activity.
-            </p>
+            <div className="px-6 py-10 text-center text-sm text-slate-400">No activity yet.</div>
           ) : (
-            <ul className="space-y-3">
-              {recentQueries.map((q, index) => (
-                <li
-                  key={index}
-                  className="flex items-center justify-between gap-4 border-b pb-3 last:border-b-0 last:pb-0"
-                >
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">{q.question}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(q.createdAt).toLocaleString()}
-                    </p>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className={
-                      q.wasAnswered
-                        ? "border-green-500 text-green-600"
-                        : "border-red-500 text-red-600"
-                    }
-                  >
-                    {q.wasAnswered ? "Answered" : "Unanswered"}
-                  </Badge>
-                </li>
-              ))}
-            </ul>
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  <th className="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Question</th>
+                  <th className="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Status</th>
+                  <th className="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Confidence</th>
+                  <th className="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Time</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {recentQueries.map((q, i) => (
+                  <tr key={i} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-6 py-3 text-sm text-slate-800 max-w-xs truncate">{q.question}</td>
+                    <td className="px-6 py-3">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${q.wasAnswered ? "bg-indigo-50 text-indigo-600 border border-indigo-200" : "bg-amber-50 text-amber-600 border border-amber-200"}`}>
+                        {q.wasAnswered ? "Answered" : "Gap"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 h-1.5 bg-slate-100 rounded-full">
+                          <div className="h-full bg-indigo-400 rounded-full" style={{ width: `${Math.round(q.confidence * 100)}%` }} />
+                        </div>
+                        <span className="text-xs text-slate-500">{Math.round(q.confidence * 100)}%</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-3 text-xs text-slate-400">
+                      {new Date(q.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
-        </CardContent>
-      </Card>
+        </div>
+
+      </div>
     </div>
   );
 }
