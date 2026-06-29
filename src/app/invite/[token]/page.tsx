@@ -51,7 +51,9 @@ export default function InvitePage() {
       const res = await fetch(`/api/invites/${token}/accept`, { method: "POST" });
       if (res.ok) {
         setState("success");
-        setTimeout(() => router.push("/dashboard"), 2000);
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 2000);
       } else {
         const data = await res.json();
         setErrorMsg(data.error ?? "Failed to accept invite.");
