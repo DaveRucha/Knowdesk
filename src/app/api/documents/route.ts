@@ -29,6 +29,11 @@ export async function POST(request: Request) {
   }
 
   const organizationId = session.user.organizationId;
+  const userId = session.user.userId;
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const formData = await request.formData();
   const file = formData.get("file");
@@ -59,7 +64,7 @@ export async function POST(request: Request) {
         s3Key,
         status: "PROCESSING",
         accessLevel: "ALL",
-        uploadedById: session.user.userId,
+        uploadedById: userId,
         organizationId,
       },
     });

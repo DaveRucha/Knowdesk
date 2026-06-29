@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function NewSopPage() {
+function NewSopForm() {
   const searchParams = useSearchParams();
   const topicFromUrl = searchParams.get("topic") ?? "";
 
@@ -207,5 +207,13 @@ export default function NewSopPage() {
         </form>
       )}
     </div>
+  );
+}
+
+export default function NewSopPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-muted-foreground">Loading...</div>}>
+      <NewSopForm />
+    </Suspense>
   );
 }

@@ -13,13 +13,13 @@ import {
 import { authOptions } from "@/lib/auth";
 import { SignOutButton } from "@/components/sign-out-button";
 
-const NAV_LINKS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/ask", label: "Ask", icon: MessageCircle },
-  { href: "/gaps", label: "Gaps", icon: AlertCircle },
-  { href: "/documents", label: "Documents", icon: FileText },
-  { href: "/sops", label: "SOPs", icon: BookOpen },
-  { href: "/analytics", label: "Analytics", icon: BarChart },
+const ALL_NAV_LINKS = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, adminOnly: false },
+  { href: "/ask", label: "Ask", icon: MessageCircle, adminOnly: false },
+  { href: "/documents", label: "Documents", icon: FileText, adminOnly: false },
+  { href: "/sops", label: "SOPs", icon: BookOpen, adminOnly: false },
+  { href: "/gaps", label: "Gaps", icon: AlertCircle, adminOnly: true },
+  { href: "/analytics", label: "Analytics", icon: BarChart, adminOnly: true },
 ];
 
 export default async function DashboardLayout({
@@ -28,15 +28,16 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await getServerSession(authOptions);
-
   if (!session) {
     redirect("/login");
   }
-
   if (!session.user.organizationId) {
     redirect("/register");
   }
 
+  const isAdmin = session.user.role === "ADMIN";
+  const navLinks = ALL_NAV_LINKS.filter(link => !link.adminOnly || isAdmin);
+  
   return (
     <div className="flex min-h-screen">
       <aside className="flex w-64 flex-col border-r bg-card px-4 py-6">
@@ -46,7 +47,7 @@ export default async function DashboardLayout({
         </div>
 
         <nav className="flex-1 space-y-1">
-          {NAV_LINKS.map(({ href, label, icon: Icon }) => (
+          {navLinks.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}

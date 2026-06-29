@@ -7,7 +7,7 @@ import prisma from "@/lib/prisma";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const CONFIDENCE_THRESHOLD = 0.5;
+const CONFIDENCE_THRESHOLD = 0.72;
 
 const SYSTEM_PROMPT =
   "You are a helpful company knowledge assistant. Answer the user's question based only on the provided context. Be concise and cite which document the information came from.";
@@ -44,13 +44,19 @@ export async function POST(request: Request) {
   });
   const embeddingLiteral = `[${embeddingResponse.data[0].embedding.join(",")}]`;
 
+  const isAdmin = session.user.role === "ADMIN";
+
   const matches = await prisma.$queryRaw<ChunkMatch[]>(Prisma.sql`
-    SELECT id, content, "documentId", 1 - (embedding <=> ${embeddingLiteral}::vector) as similarity
-    FROM "Chunk"
-    WHERE "organizationId" = ${organizationId}
-    ORDER BY embedding <=> ${embeddingLiteral}::vector
-    LIMIT 5
-  `);
+      SELECT id, content, "documentId", 1 - (embedding <=> ${embeddingLiteral}::vector) as similarity
+      FROM "Chunk"
+      WHERE "organizationId" = ${organizationId}
+      AND (
+        "accessLevel" = 'ALL'
+        ${isAdmin ? Prisma.sql`OR "accessLevel" = 'ADMIN_ONLY'` : Prisma.sql``}
+      )
+      ORDER BY embedding <=> ${embeddingLiteral}::vector
+      LIMIT 5
+    `);
 
   const confidentChunks = matches.filter(
     (chunk) => Number(chunk.similarity) >= CONFIDENCE_THRESHOLD,
