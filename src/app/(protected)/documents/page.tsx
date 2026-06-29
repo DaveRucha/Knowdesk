@@ -17,11 +17,13 @@ import {
 } from "@/components/ui/table";
 
 type DocumentStatus = "PROCESSING" | "READY" | "FAILED";
+type AccessLevel = "ALL" | "ADMIN_ONLY";
 
 interface DocumentItem {
   id: string;
   name: string;
   status: DocumentStatus;
+  accessLevel: AccessLevel;
   createdAt: string;
 }
 
@@ -33,6 +35,7 @@ const STATUS_BADGE_CLASSES: Record<DocumentStatus, string> = {
 
 export default function DocumentsPage() {
   const [file, setFile] = useState<File | null>(null);
+  const [accessLevel, setAccessLevel] = useState<"ALL" | "ADMIN_ONLY">("ALL");
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
@@ -65,6 +68,7 @@ export default function DocumentsPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("accessLevel", accessLevel);
 
       const res = await fetch("/api/documents", {
         method: "POST",
@@ -113,10 +117,20 @@ export default function DocumentsPage() {
             accept=".pdf"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
-          <Button onClick={handleUpload} disabled={!file || uploading}>
-            <Upload className="mr-2 h-4 w-4" />
-            {uploading ? "Uploading..." : "Upload Document"}
-          </Button>
+          <div className="flex items-center gap-3">
+            <select
+              value={accessLevel}
+              onChange={(e) => setAccessLevel(e.target.value as "ALL" | "ADMIN_ONLY")}
+              className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="ALL">Visible to everyone</option>
+              <option value="ADMIN_ONLY">Admin only</option>
+            </select>
+            <Button onClick={handleUpload} disabled={!file || uploading}>
+              <Upload className="mr-2 h-4 w-4" />
+              {uploading ? "Uploading..." : "Upload Document"}
+            </Button>
+          </div>
           {message && (
             <p className="text-sm text-muted-foreground">{message}</p>
           )}
@@ -138,6 +152,7 @@ export default function DocumentsPage() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Access</TableHead>
                   <TableHead>Uploaded</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -152,6 +167,14 @@ export default function DocumentsPage() {
                         className={STATUS_BADGE_CLASSES[doc.status]}
                       >
                         {doc.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={doc.accessLevel === "ADMIN_ONLY" ? "border-purple-500 text-purple-600" : "border-gray-400 text-gray-500"}
+                      >
+                        {doc.accessLevel === "ADMIN_ONLY" ? "Admin only" : "Everyone"}
                       </Badge>
                     </TableCell>
                     <TableCell>

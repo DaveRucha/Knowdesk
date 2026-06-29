@@ -45,6 +45,9 @@ export async function POST(request: Request) {
     );
   }
 
+  const rawAccessLevel = formData.get("accessLevel");
+  const accessLevel = rawAccessLevel === "ADMIN_ONLY" ? "ADMIN_ONLY" : "ALL";
+
   const s3Key = `${organizationId}/${Date.now()}-${file.name}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
@@ -63,7 +66,7 @@ export async function POST(request: Request) {
         name: file.name,
         s3Key,
         status: "PROCESSING",
-        accessLevel: "ALL",
+        accessLevel,
         uploadedById: userId,
         organizationId,
       },
