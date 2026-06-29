@@ -9,6 +9,7 @@ import {
   AlertCircle,
   BarChart,
   BookMarked,
+  UserCircle,
 } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { SignOutButton } from "@/components/sign-out-button";
@@ -20,6 +21,7 @@ const ALL_NAV_LINKS = [
   { href: "/sops", label: "SOPs", icon: BookOpen, adminOnly: false },
   { href: "/gaps", label: "Knowledge Gaps", icon: AlertCircle, adminOnly: true },
   { href: "/analytics", label: "Analytics", icon: BarChart, adminOnly: true },
+  { href: "/profile", label: "Profile", icon: UserCircle, adminOnly: false },
 ];
 
 export default async function DashboardLayout({

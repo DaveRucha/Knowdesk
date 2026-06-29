@@ -42,11 +42,12 @@ model Organization {
   slug      String   @unique
   createdAt DateTime @default(now())
 
-  users     User[]
-  documents Document[]
-  sops      SOP[]
-  queries   Query[]
-  jobs      Job[]
+  users        User[]
+  documents    Document[]
+  sops         SOP[]
+  queries      Query[]
+  jobs         Job[]
+  inviteTokens InviteToken[]
 }
 
 model User {
@@ -136,6 +137,19 @@ model Job {
 
   document     Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
   organization Organization @relation(fields: [organizationId], references: [id])
+}
+
+model InviteToken {
+  id             String    @id @default(cuid())
+  token          String    @unique @default(cuid())
+  email          String
+  role           Role      @default(EMPLOYEE)
+  organizationId String
+  expiresAt      DateTime
+  usedAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 // ─── NEXTAUTH TABLES ──────────────────────────────────────

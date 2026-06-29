@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { FileText, BookOpen, MessageCircle, CheckCircle, AlertTriangle } from "lucide-react";
+import { InviteModal } from "@/components/invite-modal";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -25,23 +26,19 @@ export default async function DashboardPage() {
     prisma.query.count({ where: { organizationId, wasAnswered: false } }),
   ]);
 
-  const answerRate =
-    queryCount === 0
-      ? "N/A"
-      : `${Math.round((answeredCount / queryCount) * 100)}%`;
-
+  const answerRate = queryCount === 0 ? "N/A" : `${Math.round((answeredCount / queryCount) * 100)}%`;
   const firstName = session?.user.name?.split(" ")[0] ?? "there";
+  const isAdmin = session?.user.role === "ADMIN";
 
   return (
     <div className="flex flex-col min-h-screen">
-
-      {/* Topbar */}
       <div className="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold text-slate-900">Good morning, {firstName} 👋</h1>
           <p className="text-sm text-slate-500">{organization?.name} · knowledge base overview</p>
         </div>
         <div className="flex items-center gap-3">
+          {isAdmin && <InviteModal />}
           <a href="/documents" className="text-sm font-medium px-4 py-2 rounded-lg border border-indigo-200 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors">
             + Upload doc
           </a>
@@ -51,12 +48,8 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Content */}
       <div className="flex-1 p-8 space-y-6">
-
-        {/* Stat cards */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-
           <div className="bg-white rounded-xl border border-slate-200 p-5 relative overflow-hidden" style={{borderTop: "3px solid #6366f1"}}>
             <div className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
               <FileText className="w-4 h-4 text-indigo-600" />
@@ -64,7 +57,6 @@ export default async function DashboardPage() {
             <div className="text-xs font-medium text-slate-500 mb-2">Total Documents</div>
             <div className="text-3xl font-semibold text-slate-900">{documentCount}</div>
           </div>
-
           <div className="bg-white rounded-xl border border-slate-200 p-5 relative overflow-hidden" style={{borderTop: "3px solid #7c3aed"}}>
             <div className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
               <BookOpen className="w-4 h-4 text-violet-600" />
@@ -72,7 +64,6 @@ export default async function DashboardPage() {
             <div className="text-xs font-medium text-slate-500 mb-2">Total SOPs</div>
             <div className="text-3xl font-semibold text-slate-900">{sopCount}</div>
           </div>
-
           <div className="bg-white rounded-xl border border-slate-200 p-5 relative overflow-hidden" style={{borderTop: "3px solid #818cf8"}}>
             <div className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
               <MessageCircle className="w-4 h-4 text-indigo-500" />
@@ -80,7 +71,6 @@ export default async function DashboardPage() {
             <div className="text-xs font-medium text-slate-500 mb-2">Total Queries</div>
             <div className="text-3xl font-semibold text-slate-900">{queryCount}</div>
           </div>
-
           <div className="bg-white rounded-xl border border-slate-200 p-5 relative overflow-hidden" style={{borderTop: "3px solid #10b981"}}>
             <div className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
               <CheckCircle className="w-4 h-4 text-emerald-600" />
@@ -88,7 +78,6 @@ export default async function DashboardPage() {
             <div className="text-xs font-medium text-slate-500 mb-2">Answer Rate</div>
             <div className="text-3xl font-semibold text-slate-900">{answerRate}</div>
           </div>
-
           <div className="bg-white rounded-xl border border-slate-200 p-5 relative overflow-hidden" style={{borderTop: "3px solid #f87171"}}>
             <div className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
               <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -96,10 +85,8 @@ export default async function DashboardPage() {
             <div className="text-xs font-medium text-slate-500 mb-2">Knowledge Gaps</div>
             <div className="text-3xl font-semibold text-slate-900">{gapCount}</div>
           </div>
-
         </div>
 
-        {/* Quick actions */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <a href="/ask" className="bg-white rounded-xl border border-slate-200 p-6 hover:border-indigo-300 hover:shadow-sm transition-all">
             <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center mb-4">
@@ -124,7 +111,6 @@ export default async function DashboardPage() {
           </a>
         </div>
 
-        {/* Answer rate insight */}
         {queryCount > 0 && (
           <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -148,7 +134,6 @@ export default async function DashboardPage() {
             )}
           </div>
         )}
-
       </div>
     </div>
   );

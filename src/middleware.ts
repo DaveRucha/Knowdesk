@@ -32,5 +32,6 @@ export const config = {
     "/ask/:path*",
     "/analytics/:path*",
     "/gaps/:path*",
+    "/profile/:path*",
   ],
 };
