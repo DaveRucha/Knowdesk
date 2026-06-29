@@ -4,52 +4,100 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Base */
+    --background: 220 20% 98%;
+    --foreground: 224 71% 4%;
+
+    /* Cards — white with subtle border */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 224 71% 4%;
+
+    /* Popover */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
-  }
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --popover-foreground: 224 71% 4%;
+
+    /* Primary — Indigo 600 */
+    --primary: 243 75% 59%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary — soft indigo tint */
+    --secondary: 243 75% 97%;
+    --secondary-foreground: 243 75% 35%;
+
+    /* Muted — light slate */
+    --muted: 220 15% 95%;
+    --muted-foreground: 220 9% 46%;
+
+    /* Accent — indigo pastel */
+    --accent: 243 75% 95%;
+    --accent-foreground: 243 75% 35%;
+
+    /* Destructive — red */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 243 75% 59%;
+
+    /* Border radius */
+    --radius: 0.625rem;
+
+    /* Sidebar — dark navy */
+    --sidebar: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-muted: 215 25% 40%;
+    --sidebar-accent: 243 75% 59%;
+    --sidebar-border: 222 40% 16%;
   }
 }
 
 @layer base {
+  * {
+    @apply border-border;
+  }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
+
+/* Stat card accent tops */
+.stat-indigo { border-top: 3px solid hsl(243 75% 59%); }
+.stat-violet { border-top: 3px solid hsl(263 70% 58%); }
+.stat-emerald { border-top: 3px solid hsl(160 60% 45%); }
+.stat-amber  { border-top: 3px solid hsl(38 92% 50%); }
+.stat-red    { border-top: 3px solid hsl(0 84% 60%); }
+
+/* Pastel icon pill backgrounds */
+.pill-indigo { background: hsl(243 75% 95%); color: hsl(243 75% 45%); }
+.pill-violet { background: hsl(263 70% 95%); color: hsl(263 70% 45%); }
+.pill-emerald { background: hsl(160 60% 92%); color: hsl(160 60% 32%); }
+.pill-amber  { background: hsl(38 92% 93%); color: hsl(38 92% 35%); }
+.pill-red    { background: hsl(0 84% 95%); color: hsl(0 84% 45%); }
+
+/* Sidebar styles */
+.sidebar-nav {
+  background: hsl(var(--sidebar));
+}
+.sidebar-item {
+  @apply flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors;
+  color: hsl(var(--sidebar-muted));
+}
+.sidebar-item:hover {
+  background: hsl(222 40% 16%);
+  color: hsl(210 40% 90%);
+}
+.sidebar-item.active {
+  background: hsl(222 40% 16%);
+  color: hsl(0 0% 100%);
+}
+.sidebar-item.active svg {
+  color: hsl(var(--sidebar-accent));
+}
+
+/* Confidence badge colors */
+.badge-answered  { background: hsl(243 75% 95%); color: hsl(243 75% 40%); }
+.badge-partial   { background: hsl(38 92% 93%);  color: hsl(38 92% 35%); }
+.badge-gap       { background: hsl(0 84% 95%);   color: hsl(0 84% 40%); }
