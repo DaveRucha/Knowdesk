@@ -7,7 +7,7 @@ import prisma from "@/lib/prisma";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const CONFIDENCE_THRESHOLD = 0.72;
+const CONFIDENCE_THRESHOLD = 0.65;
 
 const SYSTEM_PROMPT =
   "You are a helpful company knowledge assistant. Answer the user's question based only on the provided context. Be concise and cite which document the information came from.";
