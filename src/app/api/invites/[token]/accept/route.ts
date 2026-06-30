@@ -28,9 +28,15 @@ export async function POST(_: Request, { params }: { params: { token: string } }
   }
 
   await prisma.$transaction([
-    prisma.user.update({
+    prisma.user.upsert({
       where: { email: session.user.email },
-      data: { organizationId: invite.organizationId, role: invite.role },
+      update: { organizationId: invite.organizationId, role: invite.role },
+      create: {
+        email: session.user.email,
+        name: session.user.name ?? session.user.email,
+        organizationId: invite.organizationId,
+        role: invite.role,
+      },
     }),
     prisma.inviteToken.update({
       where: { token: params.token },
