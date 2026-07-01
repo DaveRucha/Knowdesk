@@ -176,7 +176,7 @@ export default async function DashboardPage() {
 
       <div className="flex-1 p-8 space-y-6">
         {/* Employee stats */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div className="bg-white rounded-xl border border-slate-200 p-5 relative overflow-hidden" style={{borderTop: "3px solid #818cf8"}}>
             <div className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
               <MessageCircle className="w-4 h-4 text-indigo-500" />
@@ -197,13 +197,6 @@ export default async function DashboardPage() {
             </div>
             <div className="text-xs font-medium text-slate-500 mb-2">Available SOPs</div>
             <div className="text-3xl font-semibold text-slate-900">{sopCount}</div>
-          </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-5 relative overflow-hidden" style={{borderTop: "3px solid #f87171"}}>
-            <div className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
-              <AlertTriangle className="w-4 h-4 text-red-500" />
-            </div>
-            <div className="text-xs font-medium text-slate-500 mb-2">Unanswered</div>
-            <div className="text-3xl font-semibold text-slate-900">{myGapCount}</div>
           </div>
         </div>
 
