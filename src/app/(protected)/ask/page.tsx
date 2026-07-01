@@ -17,8 +17,8 @@ export default function AskPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { data: session } = useSession();
-  const isAdmin = session?.user?.role === "ADMIN";
+  const { data: session, status } = useSession();
+  const isAdmin = status === "authenticated" && session?.user?.role === "ADMIN";
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 

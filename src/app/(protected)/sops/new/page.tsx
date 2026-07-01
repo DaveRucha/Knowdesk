@@ -9,14 +9,15 @@ import Link from "next/link";
 
 function NewSopForm() {
   const searchParams = useSearchParams();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (session?.user?.role === "EMPLOYEE") {
+    if (status === "loading") return;
+    if (status === "authenticated" && session?.user?.role === "EMPLOYEE") {
       router.replace("/sops");
     }
-  }, [session, router]);
+  }, [session, status, router]);
   const topicFromUrl = searchParams.get("topic") ?? "";
 
   const [topic, setTopic] = useState(topicFromUrl);
