@@ -161,7 +161,7 @@ export default function AskPage() {
                     <div className="flex items-start gap-2 mb-3">
                       <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                       <p className="text-sm text-amber-800">
-                        I don&apos;t have enough information to answer this. Would you like to create an SOP for this topic?
+                        No answer found in your knowledge base. This question has been logged as a gap and your admin can review and add it.
                       </p>
                     </div>
                     {isAdmin && (
