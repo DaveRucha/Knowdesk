@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Upload, Trash2, FileText, Clock, CheckCircle, XCircle, Lock, Globe } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 type DocumentStatus = "PROCESSING" | "READY" | "FAILED";
 type AccessLevel = "ALL" | "ADMIN_ONLY";
@@ -40,7 +41,8 @@ export default function DocumentsPage() {
   const [messageType, setMessageType] = useState<"success" | "error">("success");
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
   const fetchDocuments = useCallback(async () => {
     try {
       const res = await fetch("/api/documents");
@@ -103,6 +105,7 @@ export default function DocumentsPage() {
       <div className="flex-1 p-8 space-y-6">
 
         {/* Upload card */}
+        {isAdmin && (
         <div className="bg-white rounded-xl border border-slate-200 p-6">
           <div className="flex items-center gap-2 mb-5">
             <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
@@ -163,7 +166,7 @@ export default function DocumentsPage() {
             )}
           </div>
         </div>
-
+        )}
         {/* Documents table */}
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -187,7 +190,7 @@ export default function DocumentsPage() {
                   <th className="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Status</th>
                   <th className="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Access</th>
                   <th className="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Uploaded</th>
-                  <th className="text-right text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Actions</th>
+                  {isAdmin && <th className="text-right text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -218,6 +221,7 @@ export default function DocumentsPage() {
                       <td className="px-6 py-4 text-sm text-slate-500">
                         {new Date(doc.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                       </td>
+                      {isAdmin && (
                       <td className="px-6 py-4 text-right">
                         <button
                           onClick={() => handleDelete(doc.id)}
@@ -226,6 +230,7 @@ export default function DocumentsPage() {
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </td>
+                      )}
                     </tr>
                   );
                 })}

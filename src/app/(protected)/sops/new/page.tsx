@@ -1,12 +1,22 @@
 "use client";
 
-import { useState, FormEvent, Suspense } from "react";
+import { useState, FormEvent, Suspense, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Sparkles, Save, BookOpen } from "lucide-react";
 import Link from "next/link";
 
 function NewSopForm() {
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (session?.user?.role === "EMPLOYEE") {
+      router.replace("/sops");
+    }
+  }, [session, router]);
   const topicFromUrl = searchParams.get("topic") ?? "";
 
   const [topic, setTopic] = useState(topicFromUrl);

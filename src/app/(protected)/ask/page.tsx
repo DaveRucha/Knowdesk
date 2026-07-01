@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, FormEvent, useRef, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { Send, Sparkles, AlertCircle, BookOpen } from "lucide-react";
 import Link from "next/link";
 
@@ -16,6 +17,8 @@ export default function AskPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -161,6 +164,7 @@ export default function AskPage() {
                         I don&apos;t have enough information to answer this. Would you like to create an SOP for this topic?
                       </p>
                     </div>
+                    {isAdmin && (
                     <Link
                       href={`/sops/new?topic=${encodeURIComponent(msg.question ?? "")}`}
                       className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-white border border-amber-200 rounded-lg px-3 py-1.5 hover:bg-amber-50 transition-colors"
@@ -168,6 +172,7 @@ export default function AskPage() {
                       <BookOpen className="w-3 h-3" />
                       Create SOP
                     </Link>
+                  )}
                   </div>
                 </div>
               </div>
