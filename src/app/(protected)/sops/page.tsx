@@ -1,5 +1,5 @@
 "use client";
-
+import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Trash2, BookOpen, Calendar, FileText } from "lucide-react";
@@ -14,7 +14,8 @@ export default function SopsPage() {
   const [sops, setSops] = useState<SopItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
   const fetchSops = useCallback(async () => {
     try {
       const res = await fetch("/api/sops");
@@ -58,13 +59,12 @@ export default function SopsPage() {
           <h1 className="text-lg font-semibold text-slate-900">SOPs</h1>
           <p className="text-sm text-slate-500">Standard operating procedures for your organization</p>
         </div>
-        <Link
-          href="/sops/new"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Create New SOP
-        </Link>
+        {isAdmin && (
+          <Link href="/sops/new" className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+            <Plus className="w-4 h-4" />
+            Create New SOP
+          </Link>
+        )}
       </div>
 
       <div className="flex-1 p-8">
@@ -82,13 +82,12 @@ export default function SopsPage() {
             </div>
             <div className="text-sm font-semibold text-slate-700 mb-1">No SOPs yet</div>
             <div className="text-xs text-slate-400 mb-6">Create your first SOP to document your processes</div>
-            <Link
-              href="/sops/new"
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Create your first SOP
-            </Link>
+            {isAdmin && (
+              <Link href="/sops/new" className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+                <Plus className="w-4 h-4" />
+                Create your first SOP
+              </Link>
+            )}
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -98,12 +97,14 @@ export default function SopsPage() {
                   <div className="w-9 h-9 rounded-lg bg-violet-50 flex items-center justify-center flex-shrink-0">
                     <FileText className="w-4 h-4 text-violet-600" />
                   </div>
-                  <button
-                    onClick={() => handleDelete(sop.id)}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {isAdmin && (
+                    <button
+                      onClick={() => handleDelete(sop.id)}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
 
                 <div className="mb-4">

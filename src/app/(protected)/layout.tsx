@@ -17,7 +17,7 @@ import { SignOutButton } from "@/components/sign-out-button";
 const ALL_NAV_LINKS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, adminOnly: false },
   { href: "/ask", label: "Ask a Question", icon: MessageCircle, adminOnly: false },
-  { href: "/documents", label: "Documents", icon: FileText, adminOnly: false },
+  { href: "/documents", label: "Documents", icon: FileText, adminOnly: true },
   { href: "/sops", label: "SOPs", icon: BookOpen, adminOnly: false },
   { href: "/gaps", label: "Knowledge Gaps", icon: AlertCircle, adminOnly: true },
   { href: "/analytics", label: "Analytics", icon: BarChart, adminOnly: true },

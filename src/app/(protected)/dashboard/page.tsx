@@ -39,12 +39,16 @@ export default async function DashboardPage() {
         </div>
         <div className="flex items-center gap-3">
           {isAdmin && <InviteModal />}
-          <a href="/documents" className="text-sm font-medium px-4 py-2 rounded-lg border border-indigo-200 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors">
-            + Upload doc
-          </a>
-          <a href="/sops/new" className="text-sm font-medium px-4 py-2 rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
-            Generate SOP
-          </a>
+          {isAdmin && (
+            <a href="/documents" className="text-sm font-medium px-4 py-2 rounded-lg border border-indigo-200 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors">
+              + Upload doc
+            </a>
+          )}
+          {isAdmin && (
+            <a href="/sops/new" className="text-sm font-medium px-4 py-2 rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+              Generate SOP
+            </a>
+          )}
         </div>
       </div>
 
@@ -87,7 +91,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className={`grid grid-cols-1 gap-4 ${isAdmin ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
           <a href="/ask" className="bg-white rounded-xl border border-slate-200 p-6 hover:border-indigo-300 hover:shadow-sm transition-all">
             <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center mb-4">
               <MessageCircle className="w-5 h-5 text-indigo-600" />
@@ -95,20 +99,32 @@ export default async function DashboardPage() {
             <div className="text-sm font-semibold text-slate-900 mb-1">Ask a question</div>
             <div className="text-xs text-slate-500">Get instant answers from your knowledge base</div>
           </a>
-          <a href="/documents" className="bg-white rounded-xl border border-slate-200 p-6 hover:border-indigo-300 hover:shadow-sm transition-all">
-            <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center mb-4">
-              <FileText className="w-5 h-5 text-violet-600" />
-            </div>
-            <div className="text-sm font-semibold text-slate-900 mb-1">Upload documents</div>
-            <div className="text-xs text-slate-500">Add PDFs to expand your knowledge base</div>
-          </a>
-          <a href="/sops/new" className="bg-white rounded-xl border border-slate-200 p-6 hover:border-indigo-300 hover:shadow-sm transition-all">
-            <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center mb-4">
-              <BookOpen className="w-5 h-5 text-emerald-600" />
-            </div>
-            <div className="text-sm font-semibold text-slate-900 mb-1">Generate SOP</div>
-            <div className="text-xs text-slate-500">Create standard operating procedures with AI</div>
-          </a>
+          {isAdmin ? (
+            <>
+              <a href="/documents" className="bg-white rounded-xl border border-slate-200 p-6 hover:border-indigo-300 hover:shadow-sm transition-all">
+                <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center mb-4">
+                  <FileText className="w-5 h-5 text-violet-600" />
+                </div>
+                <div className="text-sm font-semibold text-slate-900 mb-1">Upload documents</div>
+                <div className="text-xs text-slate-500">Add PDFs to expand your knowledge base</div>
+              </a>
+              <a href="/sops/new" className="bg-white rounded-xl border border-slate-200 p-6 hover:border-indigo-300 hover:shadow-sm transition-all">
+                <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center mb-4">
+                  <BookOpen className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div className="text-sm font-semibold text-slate-900 mb-1">Generate SOP</div>
+                <div className="text-xs text-slate-500">Create standard operating procedures with AI</div>
+              </a>
+            </>
+          ) : (
+            <a href="/sops" className="bg-white rounded-xl border border-slate-200 p-6 hover:border-indigo-300 hover:shadow-sm transition-all">
+              <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center mb-4">
+                <BookOpen className="w-5 h-5 text-violet-600" />
+              </div>
+              <div className="text-sm font-semibold text-slate-900 mb-1">Browse SOPs</div>
+              <div className="text-xs text-slate-500">View standard operating procedures for your org</div>
+            </a>
+          )}
         </div>
 
         {queryCount > 0 && (
@@ -123,11 +139,11 @@ export default async function DashboardPage() {
                 </div>
                 <div className="text-xs text-indigo-600">
                   {gapCount} unanswered {gapCount === 1 ? "question" : "questions"} logged as gaps
-                  {gapCount > 0 && " · consider generating SOPs to fill them"}
+                  {isAdmin && gapCount > 0 && " · consider generating SOPs to fill them"}
                 </div>
               </div>
             </div>
-            {gapCount > 0 && (
+            {isAdmin && gapCount > 0 && (
               <a href="/gaps" className="text-xs font-medium text-indigo-600 hover:text-indigo-800 whitespace-nowrap">
                 View gaps →
               </a>
