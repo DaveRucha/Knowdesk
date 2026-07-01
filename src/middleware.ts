@@ -6,7 +6,7 @@ export default withAuth(
     const { pathname } = req.nextUrl;
     const role = req.nextauth.token?.role;
 
-    const adminOnlyRoutes = ["/gaps", "/analytics"];
+    const adminOnlyRoutes = ["/gaps", "/analytics", "/sops/new"];
     const isAdminRoute = adminOnlyRoutes.some((route) =>
       pathname.startsWith(route)
     );
