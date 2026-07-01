@@ -154,9 +154,9 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     prisma.organization.findUnique({ where: { id: organizationId } }),
     prisma.sOP.count({ where: { organizationId } }),
-    prisma.query.count({ where: { organizationId, userId: userId! } }),
-    prisma.query.count({ where: { organizationId, userId: userId!, wasAnswered: true } }),
-    prisma.query.count({ where: { organizationId, userId: userId!, wasAnswered: false } }),
+    prisma.query.count({ where: { organizationId, askedById: userId! } }),
+    prisma.query.count({ where: { organizationId, askedById: userId!, wasAnswered: true } }),
+    prisma.query.count({ where: { organizationId, askedById: userId!, wasAnswered: false } }),
     prisma.sOP.findMany({
       where: { organizationId },
       orderBy: { createdAt: "desc" },
