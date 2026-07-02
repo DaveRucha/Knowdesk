@@ -15,10 +15,11 @@ export async function GET() {
       wasAnswered: true,
     },
     orderBy: { createdAt: "desc" },
-    distinct: ["question"],
-    take: 3,
+    take: 10,
     select: { question: true },
   });
 
-  return NextResponse.json(suggestions.map((q) => q.question));
+  const unique = [...new Set(suggestions.map(q => q.question))].slice(0, 3);
+
+  return NextResponse.json(unique);
 }
