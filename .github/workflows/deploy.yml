@@ -19,7 +19,6 @@ jobs:
           script: |
             cd ~/Knowdesk
             git pull origin main
-            rm -rf .next
             NODE_OPTIONS="--max-old-space-size=1536" pnpm build
             pm2 restart knowdesk-web
             pm2 restart knowdesk-worker
