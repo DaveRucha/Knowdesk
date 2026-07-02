@@ -21,11 +21,14 @@ export default function AskPage() {
   const isAdmin = status === "authenticated" && session?.user?.role === "ADMIN";
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
-
+    fetch("/api/suggestions")
+      .then(res => res.json())
+      .then(data => { if (Array.isArray(data)) setSuggestions(data); })
+      .catch(() => {});
+  }, []);
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const trimmed = question.trim();
@@ -122,17 +125,11 @@ export default function AskPage() {
             <div className="text-xs text-slate-400 max-w-xs">
               Questions are answered from your uploaded documents and SOPs
             </div>
-            <div className="mt-6 grid grid-cols-1 gap-2 w-full max-w-sm">
-              {["How do I request time off?", "What is the onboarding process?", "What are the company values?"].map(q => (
-                <button
-                  key={q}
-                  onClick={() => setQuestion(q)}
-                  className="text-left text-xs text-slate-600 bg-white border border-slate-200 rounded-lg px-4 py-2.5 hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
+            {suggestions.length > 0 && (
+              <div className="mt-6 grid grid-cols-1 gap-2 w-full max-w-sm">
+                {suggestions.map(q => ( ... ))}
+              </div>
+            )}
           </div>
         )}
 
