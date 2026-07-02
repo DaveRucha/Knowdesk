@@ -15,6 +15,7 @@ export async function GET() {
       wasAnswered: true,
     },
     orderBy: { createdAt: "desc" },
+    distinct: ["question"],
     take: 3,
     select: { question: true },
   });
