@@ -19,7 +19,12 @@ export async function GET() {
     select: { question: true },
   });
 
-  const unique = [...new Set(suggestions.map(q => q.question))].slice(0, 3);
+  const seen = new Set<string>();
+  const unique = suggestions.map(q => q.question).filter(q => {
+    if (seen.has(q)) return false;
+    seen.add(q);
+    return true;
+  }).slice(0, 3);
 
   return NextResponse.json(unique);
 }
