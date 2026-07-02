@@ -127,7 +127,15 @@ export default function AskPage() {
             </div>
             {suggestions.length > 0 && (
               <div className="mt-6 grid grid-cols-1 gap-2 w-full max-w-sm">
-                {suggestions.map(q => ( ... ))}
+                {suggestions.map(q => (
+                  <button
+                    key={q}
+                    onClick={() => setQuestion(q)}
+                    className="text-left text-xs text-slate-600 bg-white border border-slate-200 rounded-lg px-4 py-2.5 hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
+                  >
+                    {q}
+                  </button>
+                ))}
               </div>
             )}
           </div>
