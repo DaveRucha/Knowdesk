@@ -6,6 +6,7 @@ import { FileText, BookOpen, MessageCircle, CheckCircle, AlertTriangle, Calendar
 import { InviteModal } from "@/components/invite-modal";
 import Link from "next/link";
 
+export const dynamic = 'force-dynamic';
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   const organizationId = session?.user.organizationId;

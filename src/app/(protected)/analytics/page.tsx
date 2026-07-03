@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { withOrgContext } from "@/lib/prisma";
 import { BarChart2, MessageCircle, CheckCircle, FileText, BookOpen } from "lucide-react";
 import { AnalyticsCharts } from "@/components/analytics-charts";
-
+export const dynamic = 'force-dynamic';
 export default async function AnalyticsPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
