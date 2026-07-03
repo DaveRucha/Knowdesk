@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { withOrgContext } from "@/lib/prisma";
 import { FileText, BookOpen, MessageCircle, CheckCircle, AlertTriangle, Calendar } from "lucide-react";
 import { InviteModal } from "@/components/invite-modal";
 import Link from "next/link";
@@ -23,14 +23,16 @@ export default async function DashboardPage() {
       queryCount,
       answeredCount,
       gapCount,
-    ] = await Promise.all([
-      prisma.organization.findUnique({ where: { id: organizationId } }),
-      prisma.document.count({ where: { organizationId } }),
-      prisma.sOP.count({ where: { organizationId } }),
-      prisma.query.count({ where: { organizationId } }),
-      prisma.query.count({ where: { organizationId, wasAnswered: true } }),
-      prisma.query.count({ where: { organizationId, wasAnswered: false } }),
-    ]);
+    ] = await withOrgContext(organizationId, (tx) =>
+      Promise.all([
+        tx.organization.findUnique({ where: { id: organizationId } }),
+        tx.document.count({ where: { organizationId } }),
+        tx.sOP.count({ where: { organizationId } }),
+        tx.query.count({ where: { organizationId } }),
+        tx.query.count({ where: { organizationId, wasAnswered: true } }),
+        tx.query.count({ where: { organizationId, wasAnswered: false } }),
+      ])
+    );
 
     const answerRate = queryCount === 0 ? "N/A" : `${Math.round((answeredCount / queryCount) * 100)}%`;
 
@@ -151,19 +153,21 @@ export default async function DashboardPage() {
     myAnsweredCount,
     myGapCount,
     recentSops,
-  ] = await Promise.all([
-    prisma.organization.findUnique({ where: { id: organizationId } }),
-    prisma.sOP.count({ where: { organizationId } }),
-    prisma.query.count({ where: { organizationId, askedById: userId! } }),
-    prisma.query.count({ where: { organizationId, askedById: userId!, wasAnswered: true } }),
-    prisma.query.count({ where: { organizationId, askedById: userId!, wasAnswered: false } }),
-    prisma.sOP.findMany({
-      where: { organizationId },
-      orderBy: { createdAt: "desc" },
-      take: 3,
-      select: { id: true, title: true, createdAt: true },
-    }),
-  ]);
+  ] = await withOrgContext(organizationId, (tx) =>
+    Promise.all([
+      tx.organization.findUnique({ where: { id: organizationId } }),
+      tx.sOP.count({ where: { organizationId } }),
+      tx.query.count({ where: { organizationId, askedById: userId! } }),
+      tx.query.count({ where: { organizationId, askedById: userId!, wasAnswered: true } }),
+      tx.query.count({ where: { organizationId, askedById: userId!, wasAnswered: false } }),
+      tx.sOP.findMany({
+        where: { organizationId },
+        orderBy: { createdAt: "desc" },
+        take: 3,
+        select: { id: true, title: true, createdAt: true },
+      }),
+    ])
+  );
 
   const myAnswerRate = myQueryCount === 0 ? "N/A" : `${Math.round((myAnsweredCount / myQueryCount) * 100)}%`;
 

@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { Prisma } from "@prisma/client";
 import OpenAI from "openai";
 import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { withOrgContext } from "@/lib/prisma";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -46,7 +46,8 @@ export async function POST(request: Request) {
 
   const isAdmin = session.user.role === "ADMIN";
 
-  const matches = await prisma.$queryRaw<ChunkMatch[]>(Prisma.sql`
+  const dbResult = await withOrgContext(organizationId, async (tx) => {
+    const matches = await tx.$queryRaw<ChunkMatch[]>(Prisma.sql`
       SELECT id, content, "documentId", 1 - (embedding <=> ${embeddingLiteral}::vector) as similarity
       FROM "Chunk"
       WHERE "organizationId" = ${organizationId}
@@ -57,52 +58,63 @@ export async function POST(request: Request) {
       ORDER BY embedding <=> ${embeddingLiteral}::vector
       LIMIT 5
     `);
+    
+    const confidentChunks = matches.filter(
+      (chunk) => Number(chunk.similarity) >= CONFIDENCE_THRESHOLD,
+    );
+    const wasAnswered = confidentChunks.length > 0;
+    const confidence = Number(matches[0]?.similarity ?? 0);
 
-  const confidentChunks = matches.filter(
-    (chunk) => Number(chunk.similarity) >= CONFIDENCE_THRESHOLD,
-  );
-  const wasAnswered = confidentChunks.length > 0;
-  const confidence = Number(matches[0]?.similarity ?? 0);
+    if (question.trim().length >= 15 && Number(confidence) >= 0.05) {
+      await tx.query.create({
+        data: {
+          question,
+          wasAnswered,
+          confidence,
+          user: { connect: { id: userId } },
+          organization: { connect: { id: organizationId } },
+        },
+      });
+    }
 
-  if (question.trim().length >= 15 && Number(confidence) >= 0.05) {
-    await prisma.query.create({
-      data: {
-        question,
-        wasAnswered,
-        confidence,
-        user: { connect: { id: userId } },
-        organization: { connect: { id: organizationId } },
+    if (!wasAnswered) {
+      return { wasAnswered: false as const, context: null };
+    }
+
+    const documents = await tx.document.findMany({
+      where: {
+        id: {
+          in: confidentChunks
+            .map((chunk) => chunk.documentId)
+            .filter((id): id is string => !!id),
+        },
       },
+      select: { id: true, name: true },
     });
-  }
+    const documentNameById = new Map(
+      documents.map((doc) => [doc.id, doc.name]),
+    );
 
-  if (!wasAnswered) {
+    const context = confidentChunks
+      .map((chunk) => {
+        const documentName = chunk.documentId
+          ? documentNameById.get(chunk.documentId) ?? "Unknown document"
+          : "Unknown document";
+        return `[Source: ${documentName}]\n${chunk.content}`;
+      })
+      .join("\n\n");
+
+    return { wasAnswered: true as const, context };
+  });
+
+  if (!dbResult.wasAnswered) {
     return NextResponse.json(
       { answer: null, confident: false, chunks: [] },
       { status: 200 },
     );
   }
 
-  const documents = await prisma.document.findMany({
-    where: {
-      id: {
-        in: confidentChunks
-          .map((chunk) => chunk.documentId)
-          .filter((id): id is string => !!id),
-      },
-    },
-    select: { id: true, name: true },
-  });
-  const documentNameById = new Map(documents.map((doc) => [doc.id, doc.name]));
-
-  const context = confidentChunks
-    .map((chunk) => {
-      const documentName = chunk.documentId
-        ? documentNameById.get(chunk.documentId) ?? "Unknown document"
-        : "Unknown document";
-      return `[Source: ${documentName}]\n${chunk.content}`;
-    })
-    .join("\n\n");
+  const context = dbResult.context;
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",

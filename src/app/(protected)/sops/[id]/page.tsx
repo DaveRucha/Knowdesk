@@ -4,16 +4,20 @@ import Link from "next/link";
 import { ArrowLeft, Calendar, FileText } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { withOrgContext } from "@/lib/prisma";
 
 export default async function SopPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
   if (!session.user.organizationId) redirect("/register");
 
-  const sop = await prisma.sOP.findFirst({
-    where: { id: params.id, organizationId: session.user.organizationId },
-  });
+  const organizationId = session.user.organizationId;
+
+  const sop = await withOrgContext(organizationId, (tx) =>
+    tx.sOP.findFirst({
+      where: { id: params.id, organizationId },
+    })
+  );
 
   return (
     <div className="flex flex-col min-h-screen">

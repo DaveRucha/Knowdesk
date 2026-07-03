@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { withOrgContext } from "@/lib/prisma";
 import { User, Mail, Shield, Building2, Calendar, Users } from "lucide-react";
 import { SignOutButton } from "@/components/sign-out-button";
 
@@ -12,17 +12,19 @@ export default async function ProfilePage() {
 
   const { userId, organizationId, role } = session.user;
 
-  const [user, org, memberCount] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, name: true, email: true, image: true, createdAt: true, role: true },
-    }),
-    prisma.organization.findUnique({
-      where: { id: organizationId },
-      select: { name: true, slug: true, createdAt: true },
-    }),
-    prisma.user.count({ where: { organizationId } }),
-  ]);
+  const [user, org, memberCount] = await withOrgContext(organizationId, (tx) =>
+    Promise.all([
+      tx.user.findUnique({
+        where: { id: userId },
+        select: { id: true, name: true, email: true, image: true, createdAt: true, role: true },
+      }),
+      tx.organization.findUnique({
+        where: { id: organizationId },
+        select: { name: true, slug: true, createdAt: true },
+      }),
+      tx.user.count({ where: { organizationId } }),
+    ])
+  );
 
   if (!user || !org) redirect("/login");
 

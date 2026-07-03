@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { withOrgContext } from "@/lib/prisma";
 import { BarChart2, MessageCircle, CheckCircle, FileText, BookOpen } from "lucide-react";
 import { AnalyticsCharts } from "@/components/analytics-charts";
 
@@ -22,37 +22,39 @@ export default async function AnalyticsPage() {
     topQuestions,
     recentQueries,
     dailyActivity,
-  ] = await Promise.all([
-    prisma.query.count({ where: { organizationId } }),
-    prisma.query.count({ where: { organizationId, wasAnswered: true } }),
-    prisma.document.count({ where: { organizationId } }),
-    prisma.sOP.count({ where: { organizationId } }),
-    prisma.$queryRaw<Array<{ question: string; count: bigint }>>(Prisma.sql`
-      SELECT question, COUNT(*) as count
-      FROM "Query"
-      WHERE "organizationId" = ${organizationId}
-      GROUP BY question
-      ORDER BY count DESC
-      LIMIT 5
-    `),
-    prisma.query.findMany({
-      where: { organizationId },
-      orderBy: { createdAt: "desc" },
-      take: 8,
-      select: { question: true, wasAnswered: true, confidence: true, createdAt: true },
-    }),
-    prisma.$queryRaw<Array<{ date: string; count: bigint; answered: bigint }>>(Prisma.sql`
-      SELECT
-        DATE("createdAt") as date,
-        COUNT(*) as count,
-        COUNT(*) FILTER (WHERE "wasAnswered" = true) as answered
-      FROM "Query"
-      WHERE "organizationId" = ${organizationId}
-        AND "createdAt" >= NOW() - INTERVAL '7 days'
-      GROUP BY DATE("createdAt")
-      ORDER BY date ASC
-    `),
-  ]);
+  ] = await withOrgContext(organizationId, (tx) =>
+    Promise.all([
+      tx.query.count({ where: { organizationId } }),
+      tx.query.count({ where: { organizationId, wasAnswered: true } }),
+      tx.document.count({ where: { organizationId } }),
+      tx.sOP.count({ where: { organizationId } }),
+      tx.$queryRaw<Array<{ question: string; count: bigint }>>(Prisma.sql`
+        SELECT question, COUNT(*) as count
+        FROM "Query"
+        WHERE "organizationId" = ${organizationId}
+        GROUP BY question
+        ORDER BY count DESC
+        LIMIT 5
+      `),
+      tx.query.findMany({
+        where: { organizationId },
+        orderBy: { createdAt: "desc" },
+        take: 8,
+        select: { question: true, wasAnswered: true, confidence: true, createdAt: true },
+      }),
+      tx.$queryRaw<Array<{ date: string; count: bigint; answered: bigint }>>(Prisma.sql`
+        SELECT
+          DATE("createdAt") as date,
+          COUNT(*) as count,
+          COUNT(*) FILTER (WHERE "wasAnswered" = true) as answered
+        FROM "Query"
+        WHERE "organizationId" = ${organizationId}
+          AND "createdAt" >= NOW() - INTERVAL '7 days'
+        GROUP BY DATE("createdAt")
+        ORDER BY date ASC
+      `),
+    ])
+  );
 
   const answerRate = totalQueries === 0 ? 0 : Math.round((answeredQueries / totalQueries) * 100);
   const gapCount = totalQueries - answeredQueries;

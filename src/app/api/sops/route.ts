@@ -5,7 +5,7 @@ import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { createId } from "@paralleldrive/cuid2";
 import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { withOrgContext } from "@/lib/prisma";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -31,15 +31,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "content is required" }, { status: 400 });
   }
 
-  const sop = await prisma.sOP.create({
-    data: {
-      title,
-      content,
-      organization: { connect: { id: organizationId } },
-      createdById: userId,
-    },
-  });
-
   const splitter = new RecursiveCharacterTextSplitter({
     chunkSize: 1000,
     chunkOverlap: 200,
@@ -52,16 +43,29 @@ export async function POST(request: Request) {
   });
   const embeddings = await embeddingsModel.embedDocuments(chunks);
 
-  for (let index = 0; index < chunks.length; index++) {
-    const chunkId = createId();
-    const chunkContent = chunks[index];
-    const embeddingVector = `[${embeddings[index].join(",")}]`;
+  const sop = await withOrgContext(organizationId, async (tx) => {
+    const sop = await tx.sOP.create({
+      data: {
+        title,
+        content,
+        organization: { connect: { id: organizationId } },
+        createdById: userId,
+      },
+    });
 
-    await prisma.$executeRaw(
-      Prisma.sql`INSERT INTO "Chunk" (id, content, embedding, "chunkIndex", "organizationId", "documentId", "sopId", "accessLevel", "pageNumber")
-      VALUES (${chunkId}, ${chunkContent}, ${embeddingVector}::vector, ${index}, ${organizationId}, NULL, ${sop.id}, 'ALL', NULL)`,
-    );
-  }
+    for (let index = 0; index < chunks.length; index++) {
+      const chunkId = createId();
+      const chunkContent = chunks[index];
+      const embeddingVector = `[${embeddings[index].join(",")}]`;
+
+      await tx.$executeRaw(
+        Prisma.sql`INSERT INTO "Chunk" (id, content, embedding, "chunkIndex", "organizationId", "documentId", "sopId", "accessLevel", "pageNumber")
+        VALUES (${chunkId}, ${chunkContent}, ${embeddingVector}::vector, ${index}, ${organizationId}, NULL, ${sop.id}, 'ALL', NULL)`,
+      );
+    }
+
+    return sop;
+  });
 
   return NextResponse.json({ id: sop.id, title: sop.title }, { status: 201 });
 }
@@ -73,11 +77,15 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const sops = await prisma.sOP.findMany({
-    where: { organizationId: session.user.organizationId },
-    orderBy: { createdAt: "desc" },
-    select: { id: true, title: true, createdAt: true },
-  });
+  const organizationId = session.user.organizationId;
+
+  const sops = await withOrgContext(organizationId, (tx) =>
+    tx.sOP.findMany({
+      where: { organizationId },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, title: true, createdAt: true },
+    })
+  );
 
   return NextResponse.json(sops, { status: 200 });
 }

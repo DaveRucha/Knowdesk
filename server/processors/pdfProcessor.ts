@@ -6,7 +6,7 @@ import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import pdf from "pdf-parse";
 import { createId } from "@paralleldrive/cuid2";
-import prisma from "../../src/lib/prisma";
+import { withOrgContext } from "../../src/lib/prisma";
 
 type PdfProcessingJobData = {
   documentId: string;
@@ -43,10 +43,12 @@ const worker = new Worker<PdfProcessingJobData>(
 
     console.log(`[pdfProcessor] Job ${job.id} started for document ${documentId}`);
 
-    await prisma.job.update({
-      where: { documentId },
-      data: { status: "PROCESSING", startedAt: new Date() },
-    });
+    await withOrgContext(organizationId, (tx) =>
+      tx.job.update({
+        where: { documentId },
+        data: { status: "PROCESSING", startedAt: new Date() },
+      })
+    );
 
     console.log(`[pdfProcessor] Downloading PDF from S3: ${s3Key}`);
     const object = await s3Client.send(
@@ -78,28 +80,34 @@ const worker = new Worker<PdfProcessingJobData>(
     const embeddings = await embeddingsModel.embedDocuments(chunkTexts);
     console.log(`[pdfProcessor] Generated ${embeddings.length} embeddings`);
 
-    for (let index = 0; index < chunks.length; index++) {
-      const chunkId = createId();
-      const content = chunks[index];
-      const embeddingVector = `[${embeddings[index].join(",")}]`;
+    await withOrgContext(organizationId, async (tx) => {
+      for (let index = 0; index < chunks.length; index++) {
+        const chunkId = createId();
+        const content = chunks[index];
+        const embeddingVector = `[${embeddings[index].join(",")}]`;
 
-      console.log(`[pdfProcessor] Inserting chunk ${index + 1}/${chunks.length}`);
-      await prisma.$executeRaw(
-        Prisma.sql`INSERT INTO "Chunk" (id, content, embedding, "chunkIndex", "organizationId", "documentId", "accessLevel", "pageNumber")
-        VALUES (${chunkId}, ${content}, ${embeddingVector}::vector, ${index}, ${organizationId}, ${documentId}, 'ALL', NULL)`
-      );
-    }
+        console.log(`[pdfProcessor] Inserting chunk ${index + 1}/${chunks.length}`);
+        await tx.$executeRaw(
+          Prisma.sql`INSERT INTO "Chunk" (id, content, embedding, "chunkIndex", "organizationId", "documentId", "accessLevel", "pageNumber")
+          VALUES (${chunkId}, ${content}, ${embeddingVector}::vector, ${index}, ${organizationId}, ${documentId}, 'ALL', NULL)`
+        );
+      }
+    });
 
     console.log(`[pdfProcessor] Marking document ${documentId} as READY`);
-    await prisma.document.update({
-      where: { id: documentId },
-      data: { status: "READY", processedAt: new Date() },
-    });
+    await withOrgContext(organizationId, (tx) =>
+      tx.document.update({
+        where: { id: documentId },
+        data: { status: "READY", processedAt: new Date() },
+      })
+    );
 
-    await prisma.job.update({
-      where: { documentId },
-      data: { status: "COMPLETED", completedAt: new Date(), progress: 100 },
-    });
+    await withOrgContext(organizationId, (tx) =>
+      tx.job.update({
+        where: { documentId },
+        data: { status: "COMPLETED", completedAt: new Date(), progress: 100 },
+      })
+    );
 
     console.log(`[pdfProcessor] Job ${job.id} completed for document ${documentId}`);
   },
@@ -110,10 +118,12 @@ worker.on("failed", async (job, error) => {
   console.error(`[pdfProcessor] Job ${job?.id} failed:`, error);
 
   if (job?.data?.documentId) {
-    await prisma.job.update({
-      where: { documentId: job.data.documentId },
-      data: { status: "FAILED", errorMessage: error.message },
-    });
+    await withOrgContext(job.data.organizationId, (tx) =>
+      tx.job.update({
+        where: { documentId: job.data.documentId },
+        data: { status: "FAILED", errorMessage: error.message },
+      })
+    );
   }
 });
 

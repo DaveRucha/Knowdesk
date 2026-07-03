@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { Queue } from "bullmq";
 import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { withOrgContext } from "@/lib/prisma";
 
 const s3Client = new S3Client({
   region: process.env.AWS_S3_REGION,
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     })
   );
 
-  const { documentId, jobId } = await prisma.$transaction(async (tx) => {
+  const { documentId, jobId } = await withOrgContext(organizationId, async (tx) => {
     const document = await tx.document.create({
       data: {
         name: file.name,
@@ -95,10 +95,14 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const documents = await prisma.document.findMany({
-    where: { organizationId: session.user.organizationId },
-    include: { job: true },
-  });
+  const organizationId = session.user.organizationId;
+
+  const documents = await withOrgContext(organizationId, (tx) =>
+    tx.document.findMany({
+      where: { organizationId },
+      include: { job: true },
+    })
+  );
 
   return NextResponse.json(documents, { status: 200 });
 }

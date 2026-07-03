@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { withOrgContext } from "@/lib/prisma";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -17,31 +17,33 @@ export async function GET() {
 
   const { organizationId } = session.user;
 
-  const gaps = await prisma.$queryRaw<
-    Array<{
-      question: string;
-      count: bigint;
-      latest_asked: Date;
-      avg_confidence: number;
-      is_resolved: boolean;
-    }>
-  >(Prisma.sql`
-    SELECT
-      q.question,
-      COUNT(*) as count,
-      MAX(q."createdAt") as latest_asked,
-      AVG(q.confidence) as avg_confidence,
-      EXISTS (
-        SELECT 1 FROM "SOP" s
-        WHERE s."organizationId" = ${organizationId}
-        AND LOWER(s.title) LIKE LOWER(CONCAT('%', q.question, '%'))
-      ) as is_resolved
-    FROM "Query" q
-    WHERE q."organizationId" = ${organizationId}
-    AND q."wasAnswered" = false
-    GROUP BY q.question
-    ORDER BY count DESC, latest_asked DESC
-  `);
+  const gaps = await withOrgContext(organizationId, (tx) =>
+    tx.$queryRaw<
+      Array<{
+        question: string;
+        count: bigint;
+        latest_asked: Date;
+        avg_confidence: number;
+        is_resolved: boolean;
+      }>
+    >(Prisma.sql`
+      SELECT
+        q.question,
+        COUNT(*) as count,
+        MAX(q."createdAt") as latest_asked,
+        AVG(q.confidence) as avg_confidence,
+        EXISTS (
+          SELECT 1 FROM "SOP" s
+          WHERE s."organizationId" = ${organizationId}
+          AND LOWER(s.title) LIKE LOWER(CONCAT('%', q.question, '%'))
+        ) as is_resolved
+      FROM "Query" q
+      WHERE q."organizationId" = ${organizationId}
+      AND q."wasAnswered" = false
+      GROUP BY q.question
+      ORDER BY count DESC, latest_asked DESC
+    `)
+  );
 
   return NextResponse.json(
     gaps.map((gap) => ({ ...gap, count: Number(gap.count) })),
@@ -72,9 +74,11 @@ export async function DELETE(request: Request) {
     );
   }
 
-  await prisma.query.deleteMany({
-    where: { question, organizationId },
-  });
+  await withOrgContext(organizationId, (tx) =>
+    tx.query.deleteMany({
+      where: { question, organizationId },
+    })
+  );
 
   return NextResponse.json({ success: true }, { status: 200 });
 }

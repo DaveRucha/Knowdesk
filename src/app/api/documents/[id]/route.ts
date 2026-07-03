@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { withOrgContext } from "@/lib/prisma";
 
 const s3Client = new S3Client({
   region: process.env.AWS_S3_REGION,
@@ -22,9 +22,13 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const document = await prisma.document.findFirst({
-    where: { id: params.id, organizationId: session.user.organizationId },
-  });
+  const organizationId = session.user.organizationId;
+
+  const document = await withOrgContext(organizationId, (tx) =>
+    tx.document.findFirst({
+      where: { id: params.id, organizationId },
+    })
+  );
 
   if (!document) {
     return NextResponse.json({ error: "Document not found" }, { status: 404 });
@@ -37,7 +41,9 @@ export async function DELETE(
     }),
   );
 
-  await prisma.document.delete({ where: { id: document.id } });
+  await withOrgContext(organizationId, (tx) =>
+    tx.document.delete({ where: { id: document.id } })
+  );
 
   return NextResponse.json({ success: true }, { status: 200 });
 }

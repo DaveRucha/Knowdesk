@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { withOrgContext } from "@/lib/prisma";
 
 export async function DELETE(
   request: Request,
@@ -19,12 +19,14 @@ export async function DELETE(
 
   const { organizationId } = session.user;
 
-  await prisma.chunk.deleteMany({
-    where: { sopId: params.id, organizationId },
-  });
+  await withOrgContext(organizationId, async (tx) => {
+    await tx.chunk.deleteMany({
+      where: { sopId: params.id, organizationId },
+    });
 
-  await prisma.sOP.deleteMany({
-    where: { id: params.id, organizationId },
+    await tx.sOP.deleteMany({
+      where: { id: params.id, organizationId },
+    });
   });
 
   return NextResponse.json({ success: true }, { status: 200 });
