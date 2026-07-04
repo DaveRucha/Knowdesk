@@ -1,0 +1,61 @@
+<svg viewBox="0 0 1200 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="glow" cx="28%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#22D3EE" stop-opacity="0.24"/>
+      <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="82%" cy="70%" r="55%">
+      <stop offset="0%" stop-color="#6366F1" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#6366F1" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F1F5F9"/>
+      <stop offset="100%" stop-color="#67E8F9"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="300" fill="#0A0E17"/>
+  <rect width="1200" height="300" fill="url(#glow)"/>
+  <rect width="1200" height="300" fill="url(#glow2)"/>
+
+  <g stroke="#334155" stroke-width="1.5" opacity="1">
+    <line x1="0" y1="40" x2="260" y2="40"/>
+    <line x1="900" y1="30" x2="1200" y2="30"/>
+    <line x1="1000" y1="30" x2="1000" y2="270"/>
+    <line x1="1080" y1="30" x2="1080" y2="270"/>
+    <line x1="900" y1="270" x2="1200" y2="270"/>
+    <line x1="900" y1="30" x2="900" y2="270"/>
+  </g>
+  <g fill="#22D3EE" opacity="1">
+    <circle cx="260" cy="40" r="3.5"/>
+    <circle cx="1000" cy="30" r="3.5"/>
+    <circle cx="1080" cy="30" r="3.5"/>
+    <circle cx="1000" cy="270" r="3.5"/>
+    <circle cx="1080" cy="270" r="3.5"/>
+    <circle cx="900" cy="30" r="3.5"/>
+    <circle cx="900" cy="270" r="3.5"/>
+  </g>
+
+  <!-- terminal window chrome -->
+  <g transform="translate(70, 34)">
+    <rect x="0" y="0" width="230" height="28" rx="7" fill="#111827" stroke="#1E293B"/>
+    <circle cx="16" cy="14" r="5" fill="#EF4444"/>
+    <circle cx="36" cy="14" r="5" fill="#F59E0B"/>
+    <circle cx="56" cy="14" r="5" fill="#22C55E"/>
+    <text x="115" y="19" font-family="'JetBrains Mono', 'Courier New', monospace" font-size="15" fill="#94A3B8" text-anchor="middle">knowdesk.me</text>
+  </g>
+
+  <!-- wordmark -->
+  <text x="70" y="128" font-family="'JetBrains Mono', 'Courier New', monospace" font-size="62" font-weight="700" fill="url(#textGrad)">knowdesk</text>
+  <text x="374" y="128" font-family="'JetBrains Mono', 'Courier New', monospace" font-size="62" font-weight="700" fill="#22D3EE">_</text>
+
+  <!-- command line, larger and clearer -->
+  <text x="72" y="176" font-family="'JetBrains Mono', 'Courier New', monospace" font-size="22" fill="#67E8F9">$</text>
+  <text x="94" y="176" font-family="'JetBrains Mono', 'Courier New', monospace" font-size="22" fill="#E2E8F0">ask "How do I request time off?"</text>
+
+  <!-- response: real answer content, not just a citation pointer -->
+  <text x="72" y="214" font-family="'JetBrains Mono', 'Courier New', monospace" font-size="19" fill="#94A3B8">&gt; Submit your PTO request in Workday at least 2 weeks in advance.</text>
+  <text x="94" y="244" font-family="'JetBrains Mono', 'Courier New', monospace" font-size="17" fill="#22D3EE">Source: Employee_Handbook.pdf</text>
+  <text x="410" y="244" font-family="'JetBrains Mono', 'Courier New', monospace" font-size="17" fill="#475569">·</text>
+  <text x="428" y="244" font-family="'JetBrains Mono', 'Courier New', monospace" font-size="17" fill="#67E8F9" font-weight="700">confidence 91%</text>
+</svg>

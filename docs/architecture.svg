@@ -1,0 +1,112 @@
+<svg viewBox="0 0 1300 860" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#67E8F9"/>
+    </marker>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#22D3EE" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .box { fill: #111827; stroke: #26344A; stroke-width: 1.75; filter: url(#softGlow); }
+      .box-accent { fill: #111827; stroke: #22D3EE; stroke-width: 2; filter: url(#softGlow); }
+      .title { font-family: 'JetBrains Mono', 'Courier New', monospace; fill: #F1F5F9; font-size: 19px; font-weight: 700; }
+      .sub { font-family: 'JetBrains Mono', 'Courier New', monospace; fill: #8FA3BF; font-size: 15px; }
+      .section { font-family: 'JetBrains Mono', 'Courier New', monospace; fill: #67E8F9; font-size: 26px; font-weight: 700; }
+      .flow { stroke: #67E8F9; stroke-width: 2; fill: none; marker-end: url(#arrow); }
+      .flowlabel { font-family: 'JetBrains Mono', 'Courier New', monospace; fill: #67E8F9; font-size: 14px; font-weight: 700; }
+      .note { font-family: 'JetBrains Mono', 'Courier New', monospace; fill: #8FA3BF; font-size: 15px; }
+      .footnote { font-family: 'JetBrains Mono', 'Courier New', monospace; fill: #64748B; font-size: 14.5px; }
+    </style>
+  </defs>
+
+  <rect width="1300" height="860" fill="#0A0E17"/>
+
+  <!-- ============ ROW 1: Document Ingestion ============ -->
+  <text x="40" y="52" class="section">1. Document Ingestion</text>
+
+  <g>
+    <rect x="40" y="78" width="210" height="96" rx="10" class="box"/>
+    <text x="145" y="118" class="title" text-anchor="middle">Admin uploads</text>
+    <text x="145" y="144" class="sub" text-anchor="middle">a PDF file</text>
+
+    <rect x="290" y="78" width="210" height="96" rx="10" class="box"/>
+    <text x="395" y="118" class="title" text-anchor="middle">AWS S3</text>
+    <text x="395" y="144" class="sub" text-anchor="middle">object storage</text>
+
+    <rect x="540" y="78" width="210" height="96" rx="10" class="box"/>
+    <text x="645" y="118" class="title" text-anchor="middle">BullMQ queue</text>
+    <text x="645" y="144" class="sub" text-anchor="middle">Redis-backed</text>
+
+    <rect x="790" y="78" width="240" height="96" rx="10" class="box"/>
+    <text x="910" y="112" class="title" text-anchor="middle">Standalone worker</text>
+    <text x="910" y="138" class="sub" text-anchor="middle">chunks (1000/200)</text>
+    <text x="910" y="158" class="sub" text-anchor="middle">+ generates embeddings</text>
+
+    <rect x="1070" y="78" width="190" height="96" rx="10" class="box"/>
+    <text x="1165" y="118" class="title" text-anchor="middle">pgvector</text>
+    <text x="1165" y="144" class="sub" text-anchor="middle">Chunk table</text>
+
+    <path d="M250,126 L290,126" class="flow"/>
+    <path d="M500,126 L540,126" class="flow"/>
+    <path d="M750,126 L790,126" class="flow"/>
+    <path d="M1030,126 L1070,126" class="flow"/>
+  </g>
+
+  <!-- ============ ROW 2: Query & Answer ============ -->
+  <text x="40" y="248" class="section">2. Query &amp; Answer</text>
+
+  <g>
+    <rect x="40" y="274" width="220" height="96" rx="10" class="box"/>
+    <text x="150" y="314" class="title" text-anchor="middle">Employee asks</text>
+    <text x="150" y="340" class="sub" text-anchor="middle">plain-English question</text>
+
+    <rect x="310" y="274" width="230" height="96" rx="10" class="box"/>
+    <text x="425" y="314" class="title" text-anchor="middle">Embed question</text>
+    <text x="425" y="340" class="sub" text-anchor="middle">text-embedding-3-small</text>
+
+    <rect x="590" y="274" width="260" height="96" rx="10" class="box-accent"/>
+    <text x="720" y="308" class="title" text-anchor="middle">Cosine similarity</text>
+    <text x="720" y="334" class="sub" text-anchor="middle">search — scoped to this</text>
+    <text x="720" y="354" class="sub" text-anchor="middle">organization only</text>
+
+    <rect x="900" y="274" width="230" height="96" rx="10" class="box-accent"/>
+    <text x="1015" y="308" class="title" text-anchor="middle" font-size="17">confidence</text>
+    <text x="1015" y="332" class="title" text-anchor="middle" font-size="17">&#8805; 0.63 ?</text>
+    <text x="1015" y="354" class="sub" text-anchor="middle">threshold gate</text>
+
+    <path d="M260,322 L310,322" class="flow"/>
+    <path d="M540,322 L590,322" class="flow"/>
+    <path d="M850,322 L900,322" class="flow"/>
+
+    <rect x="790" y="430" width="230" height="96" rx="10" class="box"/>
+    <text x="905" y="470" class="title" text-anchor="middle">Streamed answer</text>
+    <text x="905" y="496" class="sub" text-anchor="middle">gpt-4o-mini, cited</text>
+
+    <rect x="1040" y="430" width="230" height="96" rx="10" class="box"/>
+    <text x="1155" y="470" class="title" text-anchor="middle">Logged as gap</text>
+    <text x="1155" y="496" class="sub" text-anchor="middle">no confident match</text>
+
+    <path d="M1015,370 L1015,400 L905,400 L905,430" class="flow"/>
+    <text x="945" y="393" class="flowlabel" text-anchor="middle">yes</text>
+    <path d="M1015,370 L1015,400 L1155,400 L1155,430" class="flow"/>
+    <text x="1085" y="393" class="flowlabel" text-anchor="middle">no</text>
+  </g>
+
+  <!-- ============ Two-layer isolation ============ -->
+  <rect x="30" y="580" width="1240" height="250" rx="14" fill="none" stroke="#22D3EE" stroke-width="1.75" stroke-dasharray="8,6" opacity="0.75"/>
+  <text x="55" y="622" class="section">3. Two-Layer Multi-Tenant Isolation</text>
+
+  <rect x="60" y="646" width="580" height="150" rx="10" class="box" stroke="#334155"/>
+  <text x="350" y="678" class="title" text-anchor="middle">Application layer</text>
+  <text x="350" y="708" class="note" text-anchor="middle">Every query filters by organizationId,</text>
+  <text x="350" y="732" class="note" text-anchor="middle">sourced from the session token —</text>
+  <text x="350" y="756" class="note" text-anchor="middle">never from request input</text>
+
+  <rect x="670" y="646" width="600" height="150" rx="10" class="box" stroke="#334155"/>
+  <text x="970" y="678" class="title" text-anchor="middle">Database layer — Postgres RLS</text>
+  <text x="970" y="708" class="note" text-anchor="middle">Row Level Security on Document, Chunk,</text>
+  <text x="970" y="732" class="note" text-anchor="middle">Query, SOP, and Job — enforced via a</text>
+  <text x="970" y="756" class="note" text-anchor="middle">dedicated non-superuser database role</text>
+
+  <text x="650" y="815" class="footnote" text-anchor="middle">Verified: a session for Org A cannot retrieve Org B's data — even with matching documents and identical embeddings.</text>
+</svg>
