@@ -2,6 +2,7 @@
   <img src="docs/banner.svg" alt="Knowdesk" width="100%"/>
 </p>
 
+
 <p align="center">
   <img src="https://img.shields.io/badge/Next.js-14-black?style=flat-square" alt="Next.js 14"/>
   <img src="https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square" alt="TypeScript"/>
@@ -16,6 +17,14 @@
 
 <p align="center">
   <a href="https://knowdesk.me"><strong>Live Demo</strong></a>
+</p>
+
+<p align="center">
+  <a href="#the-problem">Problem</a> &nbsp;·&nbsp;
+  <a href="#features">Features</a> &nbsp;·&nbsp;
+  <a href="#architecture">Architecture</a> &nbsp;·&nbsp;
+  <a href="#getting-started">Getting Started</a> &nbsp;·&nbsp;
+  <a href="#testing">Testing</a>
 </p>
 
 ---
@@ -36,7 +45,7 @@ The deeper problem: most internal docs tools assume a company already has **clea
 
 ## Demo
 
-[Video placeholder, will add a short walkthrough here]
+<p align="center">[Video placeholder, will add a short walkthrough here]</p>
 
 ---
 
@@ -52,10 +61,7 @@ The deeper problem: most internal docs tools assume a company already has **clea
 
 ## Architecture
 
-## Ask Page
-
 ![Knowdesk Architecture](docs/achitecture.png)
-
 
 The core design decision here is **isolation at two independent layers**.
 
@@ -90,13 +96,13 @@ This is the whole reason the test suite exists. Not to confirm code already work
 
 ## Screenshots
 
-## Ask Page
+### Ask Page
 
-![Knowdesk Ask Page](docs/screenshots/ask.png)
+![Ask Page](docs/screenshots/ask.png)
 
-## Analytics Dashboard
+### Analytics Dashboard
 
-![Knowdesk Analytics](docs/screenshots/analytics.png)
+![Analytics Dashboard](docs/screenshots/analytics.png)
 
 ---
 
