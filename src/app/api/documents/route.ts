@@ -28,16 +28,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const organizationId = session.user.organizationId;
   const userId = session.user.userId;
-
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Document upload is an ADMIN-only action — employees can query and
+  // read, but only admins manage the knowledge base's source documents.
+  if (session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const organizationId = session.user.organizationId;
+
   const formData = await request.formData();
   const file = formData.get("file");
-
   if (!file || !(file instanceof File) || file.type !== "application/pdf") {
     return NextResponse.json(
       { error: "A PDF file is required" },
@@ -47,7 +52,6 @@ export async function POST(request: Request) {
 
   const rawAccessLevel = formData.get("accessLevel");
   const accessLevel = rawAccessLevel === "ADMIN_ONLY" ? "ADMIN_ONLY" : "ALL";
-
   const s3Key = `${organizationId}/${Date.now()}-${file.name}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
@@ -71,7 +75,6 @@ export async function POST(request: Request) {
         organizationId,
       },
     });
-
     const job = await tx.job.create({
       data: {
         documentId: document.id,
@@ -79,7 +82,6 @@ export async function POST(request: Request) {
         organizationId,
       },
     });
-
     return { documentId: document.id, jobId: job.id };
   });
 

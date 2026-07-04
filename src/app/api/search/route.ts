@@ -4,20 +4,12 @@ import { Prisma } from "@prisma/client";
 import OpenAI from "openai";
 import { authOptions } from "@/lib/auth";
 import { withOrgContext } from "@/lib/prisma";
-
+import { filterConfidentChunks, ChunkMatch } from "@/lib/confidence";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-const CONFIDENCE_THRESHOLD = 0.63;
 
 const SYSTEM_PROMPT =
   "You are a helpful company knowledge assistant. Answer the user's question based only on the provided context. Be concise and cite which document the information came from.";
 
-interface ChunkMatch {
-  id: string;
-  content: string;
-  documentId: string | null;
-  similarity: number;
-}
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -59,11 +51,8 @@ export async function POST(request: Request) {
       LIMIT 5
     `);
     
-    const confidentChunks = matches.filter(
-      (chunk) => Number(chunk.similarity) >= CONFIDENCE_THRESHOLD,
-    );
-    const wasAnswered = confidentChunks.length > 0;
-    const confidence = Number(matches[0]?.similarity ?? 0);
+    const { confidentChunks, wasAnswered, confidence } =
+     filterConfidentChunks(matches);
 
     if (question.trim().length >= 15 && Number(confidence) >= 0.05) {
       await tx.query.create({

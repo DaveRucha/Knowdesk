@@ -2,11 +2,11 @@ import { Readable } from "stream";
 import { Worker, Job } from "bullmq";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { Prisma } from "@prisma/client";
-import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import pdf from "pdf-parse";
 import { createId } from "@paralleldrive/cuid2";
 import { withOrgContext } from "../../src/lib/prisma";
+import { chunkText } from "../../src/lib/chunking";
 
 type PdfProcessingJobData = {
   documentId: string;
@@ -64,11 +64,7 @@ const worker = new Worker<PdfProcessingJobData>(
     console.log(`[pdfProcessor] Extracted ${text.length} characters`);
 
     console.log(`[pdfProcessor] Splitting text into chunks`);
-    const splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 1000,
-      chunkOverlap: 200,
-    });
-    const chunks = await splitter.splitText(text);
+    const chunks = await chunkText(text);
     console.log(`[pdfProcessor] Split into ${chunks.length} chunks`);
 
     console.log(`[pdfProcessor] Generating embeddings`);

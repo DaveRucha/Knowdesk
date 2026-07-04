@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { Prisma } from "@prisma/client";
-import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { createId } from "@paralleldrive/cuid2";
 import { authOptions } from "@/lib/auth";
 import { withOrgContext } from "@/lib/prisma";
+import { chunkText } from "@/lib/chunking";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -31,11 +31,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "content is required" }, { status: 400 });
   }
 
-  const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 1000,
-    chunkOverlap: 200,
-  });
-  const chunks = await splitter.splitText(content);
+  const chunks = await chunkText(content);
 
   const embeddingsModel = new OpenAIEmbeddings({
     model: "text-embedding-3-small",
