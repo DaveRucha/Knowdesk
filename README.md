@@ -52,9 +52,10 @@ The deeper problem: most internal docs tools assume a company already has **clea
 
 ## Architecture
 
-<p align="center">
-  <img src="docs/architecture.svg" alt="Knowdesk architecture diagram showing document ingestion, the query pipeline, and tenant isolation" width="100%"/>
-</p>
+## Ask Page
+
+![Knowdesk Architecture](docs/achitecture.png)
+
 
 The core design decision here is **isolation at two independent layers**.
 
@@ -89,13 +90,13 @@ This is the whole reason the test suite exists. Not to confirm code already work
 
 ## Screenshots
 
-<p align="center">
-  <img src="docs/screenshots/ask.png" alt="Knowdesk Ask page showing a question and a cited answer" width="90%"/>
-</p>
+## Ask Page
 
-<p align="center">
-  <img src="docs/screenshots/analytics.png" alt="Knowdesk admin analytics dashboard" width="90%"/>
-</p>
+![Knowdesk Ask Page](docs/screenshots/ask.png)
+
+## Analytics Dashboard
+
+![Knowdesk Analytics](docs/screenshots/analytics.png)
 
 ---
 
