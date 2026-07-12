@@ -43,12 +43,6 @@ The deeper problem: most internal docs tools assume a company already has **clea
 
 ---
 
-## Demo
-
-<p align="center">[Video placeholder, will add a short walkthrough here]</p>
-
----
-
 ## Features
 
 * **RAG based Q and A** with streamed, cited answers pulled from uploaded PDFs
